@@ -1,0 +1,40 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Debug: Single",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/src/single.py",
+            "console": "integratedTerminal",
+            "args": [
+                "王杰 叶欢-你是我胸口永远的痛-国语-流行歌曲.mkv"
+            ]
+        },
+        {
+            "name": "Run: Index",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/src/index.py",
+            "console": "integratedTerminal",
+            "cwd": "W:\\KTV歌库",
+            "args": [
+                "."
+            ]
+        },
+        {
+            "name": "Run: Batch remove video",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/src/batch_remove_video.py",
+            "console": "integratedTerminal",
+            "cwd": "W:\\KTV歌库",
+            "args": [
+                "."
+            ]
+        }
+    ]
+}
