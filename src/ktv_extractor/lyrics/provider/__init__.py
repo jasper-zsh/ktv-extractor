@@ -1,12 +1,8 @@
 import re
-from .. import Lyrics, LyricsData, LyricsLine, LyricsWord
+from .. import BaseLyricsProvider, SearchType, LyricsData, LyricsLine, LyricsWord
 from ...utils.time import time2ms
 
 from .ne import NeteaseMusicLyricsProvider
-
-class BaseLyricsProvider:
-    async def get_lyrics(self, lyrics: Lyrics) -> None:
-        raise NotImplementedError()
 
 def plaintext2list(plaintext: str) -> LyricsData:
     lrc_list = LyricsData([])

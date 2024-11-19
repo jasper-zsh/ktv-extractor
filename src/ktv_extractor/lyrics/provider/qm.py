@@ -2,10 +2,11 @@ import re
 import logging
 import aiohttp
 import json
+import random
 from zlib import decompress
 from enum import Enum
 from base64 import b64encode
-from . import BaseLyricsProvider, lrc2list, plaintext2list
+from . import BaseLyricsProvider, SearchType, lrc2list, plaintext2list
 from .. import Lyrics, LyricsData, LyricsLine, LyricsWord
 
 from ..decryptor.qmc1 import qmc1_decrypt
@@ -19,7 +20,101 @@ class QrcType(Enum):
     LOCAL = 0
     CLOUD = 1
 
+
+QMD_headers = {
+    "Accept": "*/*",
+    "Accept-Encoding": "gzip, deflate",
+    "Accept-Language": "zh-CN",
+    "User-Agent": "Mozilla/5.0 (compatible; MSIE 9.0; Windows NT 6.1; WOW64; Trident/5.0)",
+}
+
 class QQMusicLyricsProvider(BaseLyricsProvider):
+    async def search(self, keyword, search_type, page = 1):
+        if search_type not in (SearchType.SONG, SearchType.ARTIST, SearchType.ALBUM, SearchType.SONGLIST):
+            msg = f"搜索类型错误,类型为{search_type}"
+            raise ValueError(msg)
+        search_type_mapping = {
+            SearchType.SONG: 0,
+            SearchType.ARTIST: 1,
+            SearchType.ALBUM: 2,
+            SearchType.SONGLIST: 3,
+            SearchType.LYRICS: 7,
+        }
+        data = json.dumps({
+            "comm": {
+                "g_tk": 997034911,
+                "uin": random.randint(1000000000, 9999999999),  # noqa: S311
+                "format": "json",
+                "inCharset": "utf-8",
+                "outCharset": "utf-8",
+                "notice": 0,
+                "platform": "h5",
+                "needNewCode": 1,
+                "ct": 23,
+                "cv": 0,
+            },
+            "req_0": {
+                "method": "DoSearchForQQMusicDesktop",
+                "module": "music.search.SearchCgiService",
+                "param": {
+                    "num_per_page": 20,
+                    "page_num": int(page),
+                    "query": keyword,
+                    "search_type": search_type_mapping[search_type],
+                },
+            },
+        }, ensure_ascii=False).encode("utf-8")
+        async with aiohttp.ClientSession() as session:
+            async with session.post('https://u.y.qq.com/cgi-bin/musicu.fcg', headers=QMD_headers, data=data, timeout=3) as response:
+                response.raise_for_status()
+                res_text = await response.text()
+                res_data = json.loads(res_text)
+                infos = res_data['req_0']['data']['body']
+                results = []
+                match search_type:
+
+                    case SearchType.SONG:
+                        results = self.qmsonglist2result(infos['song']['list'])
+
+                    case SearchType.ALBUM:
+                        for album in infos['album']['list']:
+                            results.append({
+                                'id': album['albumID'],
+                                'mid': album['albumMID'],
+                                'name': album['albumName'],
+                                'pic': album['albumPic'],  # 专辑封面
+                                'count': album['song_count'],  # 歌曲数量
+                                'time': album['publicTime'],
+                                'artist': album['singerName'],
+                                'source': self,
+                            })
+
+                    case SearchType.SONGLIST:
+                        for songlist in infos['songlist']['list']:
+                            results.append({
+                                'id': songlist['dissid'],
+                                'name': songlist['dissname'],
+                                'pic': songlist['imgurl'],  # 歌单封面
+                                'count': songlist['song_count'],  # 歌曲数量
+                                'time': songlist['createtime'],
+                                'creator': songlist['creator']['name'],
+                                'source': self,
+                            })
+
+                    case SearchType.ARTIST:
+                        for artist in infos['singer']['list']:
+                            results.append({
+                                'id': artist['singerID'],
+                                'name': artist['singerName'],
+                                'pic': artist['singerPic'],  # 艺术家图片
+                                'count': artist['songNum'],  # 歌曲数量
+                                'source': self,
+                            })
+                logger.info("搜索成功")
+                logger.debug("搜索结果: %s", json.dumps(results, default=lambda x: str(x), ensure_ascii=False, indent=4))
+                    
+                return results
+
     async def get_lyrics(self, lyrics: Lyrics) -> None:
         if lyrics.title is None or not isinstance(lyrics.artist, list) or lyrics.album is None or not isinstance(lyrics.id, int) or lyrics.duration is None:
             msg = "缺少必要参数"
@@ -71,14 +166,15 @@ class QQMusicLyricsProvider(BaseLyricsProvider):
             }, ensure_ascii=False).encode("utf-8")
             async with session.post('https://u.y.qq.com/cgi-bin/musicu.fcg', headers=QMD_headers, data=data, timeout=10) as response:
                 response.raise_for_status()
-                response_data = await response.json()
+                res_text = await response.text()
+                response_data = json.loads(res_text)
                 response_data = response_data['music.musichallSong.PlayLyricInfo.GetPlayLyricInfo']['data']
                 
                 for key, value in [("orig", 'lyric'),
                                 ("ts", 'trans'),
                                 ("roma", 'roma')]:
-                    lrc = response[value]
-                    lrc_t = (response["qrc_t"] if response["qrc_t"] != 0 else response["lrc_t"]) if value == "lyric" else response[value + "_t"]
+                    lrc = response_data[value]
+                    lrc_t = (response_data["qrc_t"] if response_data["qrc_t"] != 0 else response_data["lrc_t"]) if value == "lyric" else response_data[value + "_t"]
                     if lrc != "" and lrc_t != "0":
                         encrypted_lyric = lrc
 
@@ -94,6 +190,24 @@ class QQMusicLyricsProvider(BaseLyricsProvider):
                     elif (lrc_t == "0" and key == "orig"):
                         msg = "没有获取到可用的歌词"
                         raise Exception(msg)
+
+    def qmsonglist2result(self, songlist: list, list_type: str | None = None) -> list:
+        results = []
+        for song in songlist:
+            info = song["songInfo"] if list_type == "album" else song
+            # 处理艺术家
+            artist = [singer['name'] for singer in info['singer'] if singer['name'] != ""]
+            results.append({
+                'id': info['id'],
+                'mid': info['mid'],
+                'title': info['title'],
+                'subtitle': info['subtitle'],
+                'artist': artist,
+                'album': info['album']['name'],
+                'duration': info['interval'],
+                'source': self,
+            })
+        return results
 
 def qrc2list(s_qrc: str) -> tuple[dict, LyricsData]:
     """将qrc转换为列表[(行起始时间, 行结束时间, [(字起始时间, 字结束时间, 字内容)])]"""

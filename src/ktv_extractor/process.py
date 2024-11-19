@@ -1,7 +1,6 @@
 from pymkv import MKVFile
 from . import model
 from .model import Song, Artist, Tag
-from .lyrics import fetch_lyrics
 from sqlalchemy import select
 from sqlalchemy.orm import scoped_session
 from pathlib import Path
@@ -34,7 +33,7 @@ def process_tracks(filepath: str):
 
 artist_seps = ['_', '^', '&', ' ']
 
-def index(filepath: str):
+def index(filepath: str, reindex: bool = False):
     p = Path(filepath)
     with scoped_session(model.session_factory)() as session:
         song = session.scalar(select(Song).where(Song.path == filepath))
@@ -42,6 +41,8 @@ def index(filepath: str):
             print('indexing %s' % (filepath))
             song = Song(path=filepath, audio_only=False)
         else:
+            if not reindex:
+                return
             print('reindexing %d %s' % (song.id, filepath))
         
         name_parts = p.stem.split('-')
