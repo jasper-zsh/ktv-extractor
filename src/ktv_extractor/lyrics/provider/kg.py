@@ -74,7 +74,7 @@ class KugouLyricsProvider(BaseLyricsProvider):
             case _:
                 msg = f"错误: 未知搜索类型{search_type!s}"
                 raise ValueError(msg)
-        async with self.client_session.get(url, params=params, timeout=3) as response:
+        async with self.client_session.get(url, params=params) as response:
             response.raise_for_status()
             if search_type == SearchType.LYRICS:
                 response_json = await response.json()
@@ -135,7 +135,7 @@ class KugouLyricsProvider(BaseLyricsProvider):
             "fmt": "krc",
             "charset": "utf8",
         }
-        async with self.client_session.get(url, params=params, timeout=10) as response:
+        async with self.client_session.get(url, params=params) as response:
             response.raise_for_status()
             response_json = await response.json()
             encrypted_krc = b64decode(response_json['content'])

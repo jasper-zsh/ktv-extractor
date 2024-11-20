@@ -74,7 +74,7 @@ class QQMusicLyricsProvider(BaseLyricsProvider):
                 },
             },
         }, ensure_ascii=False).encode("utf-8")
-        async with self.client_session.post('https://u.y.qq.com/cgi-bin/musicu.fcg', headers=QMD_headers, data=data, timeout=10) as response:
+        async with self.client_session.post('https://u.y.qq.com/cgi-bin/musicu.fcg', headers=QMD_headers, data=data) as response:
             response.raise_for_status()
             res_text = await response.text()
             res_data = json.loads(res_text)
@@ -172,7 +172,7 @@ class QQMusicLyricsProvider(BaseLyricsProvider):
                 },
             },
         }, ensure_ascii=False).encode("utf-8")
-        async with self.client_session.post('https://u.y.qq.com/cgi-bin/musicu.fcg', headers=QMD_headers, data=data, timeout=10) as response:
+        async with self.client_session.post('https://u.y.qq.com/cgi-bin/musicu.fcg', headers=QMD_headers, data=data) as response:
             response.raise_for_status()
             res_text = await response.text()
             response_data = json.loads(res_text)

@@ -171,7 +171,7 @@ class NeteaseMusicLyricsProvider(BaseLyricsProvider):
         headers = NeteaseCloudMusic_headers.copy()
         # headers.update({"Content-Length": str(len(params))})
         url = "https://music.163.com" + path
-        async with self.client_session.post(url, headers=headers, data=encrypted_params, timeout=4) as response:
+        async with self.client_session.post(url, headers=headers, data=encrypted_params) as response:
             response.raise_for_status()
             data = eapi_response_decrypt(await response.content.read())
             return json.loads(data)
