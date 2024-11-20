@@ -2,7 +2,8 @@ import logging
 import re
 import json
 from difflib import SequenceMatcher
-from .provider import BaseLyricsProvider, SearchType
+from . import BaseLyricsProvider, SearchType
+from .provider.kg import KugouLyricsProvider
 from . import Lyrics
 from ..model import Song
 
@@ -18,6 +19,11 @@ async def match_lyrics(provider: BaseLyricsProvider, song: Song, min_score: floa
         result = await _search(provider, song, song.name, min_score)
     if not result:
         return
+    if isinstance(provider, KugouLyricsProvider):
+        result = await provider.search(keyword, SearchType.LYRICS, result)
+        if not result:
+            return
+        result = result[0]
     lyrics = Lyrics({
         'source': provider,
         **{arg[0]: arg[1] for arg in result.items() if arg[0] in Lyrics.INFO_KEYS}

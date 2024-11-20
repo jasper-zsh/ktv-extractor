@@ -22,7 +22,7 @@
             "console": "integratedTerminal",
             "cwd": "W:\\KTV歌库",
             "args": [
-                "."
+                ".\\mkv\\MKV歌库2"
             ]
         },
         {

@@ -1,8 +1,8 @@
 import re
-from .. import BaseLyricsProvider, SearchType, LyricsData, LyricsLine, LyricsWord
+from .. import LyricsData, LyricsLine, LyricsWord
+from ..enum import Source
 from ...utils.time import time2ms
 
-from .ne import NeteaseMusicLyricsProvider
 
 def plaintext2list(plaintext: str) -> LyricsData:
     lrc_list = LyricsData([])
@@ -10,7 +10,7 @@ def plaintext2list(plaintext: str) -> LyricsData:
         lrc_list.append(LyricsLine((None, None, [LyricsWord((None, None, line))])))
     return lrc_list
 
-def lrc2list(lrc: str, source: BaseLyricsProvider | None = None) -> tuple[dict[str, str], LyricsData]:
+def lrc2list(lrc: str, source: Source | None = None) -> tuple[dict[str, str], LyricsData]:
     tags, lrc_lists = _lrc2list_list(lrc, source)
     # 合并为一个LyricsData
     for i, lrc_list in enumerate(lrc_lists):
@@ -24,7 +24,7 @@ def lrc2list(lrc: str, source: BaseLyricsProvider | None = None) -> tuple[dict[s
                     break
     return tags, lrc_lists[0]
 
-def _lrc2list_list(lrc: str, source: BaseLyricsProvider | None = None) -> tuple[dict[str, str], list[LyricsData]]:
+def _lrc2list_list(lrc: str, source: Source | None = None) -> tuple[dict[str, str], list[LyricsData]]:
     lrc_lists: list[LyricsData] = [LyricsData([])]
     start_time_lists: list[list] = [[]]
 
@@ -61,7 +61,7 @@ def _lrc2list_list(lrc: str, source: BaseLyricsProvider | None = None) -> tuple[
             m, s, ms, line_content = line_split_content[0]
             start, end, words = time2ms(m, s, ms), None, []
 
-            if isinstance(source, NeteaseMusicLyricsProvider):
+            if source == Source.NE:
                 # 如果转换的是网易云歌词且这一行有开头有几个连在一起的时间戳表示这几个时间戳的行都是这个歌词
                 multi_line_split_content = multi_line_split_pattern.findall(line_str)
                 if multi_line_split_content:

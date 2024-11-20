@@ -35,6 +35,8 @@ multidict==6.1.0
 propcache==0.2.0
     # via aiohttp
     # via yarl
+pyaes==1.6.1
+    # via ktv-extractor
 pymkv2==2.0.8
     # via ktv-extractor
 pypinyin==0.53.0

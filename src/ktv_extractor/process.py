@@ -83,18 +83,3 @@ def index(filepath: str, reindex: bool = False):
         song.pinyin_head = ''.join(map(lambda x: x[0], pinyin(song.name, style=Style.FIRST_LETTER)))
         session.add(song)
         session.commit()
-
-def process_lyrics(song: Song, filepath: str):
-    print('fetching lyrics for %s' % (filepath))
-    try:
-        lyrics = fetch_lyrics({
-            'artist': '/'.join(map(lambda x: x.name, song.artists)),
-            'title': song.name,
-        })
-        if lyrics is not None:
-            lrc_path = '.'.join(filepath.split('.')[:-1]) + '.lrc'
-            with open(lrc_path, 'w', encoding='utf-8') as f:
-                f.write(lyrics)
-            song.lrc_path = lrc_path
-    except Exception as ex:
-        print('failed to fetch lyrics', ex)

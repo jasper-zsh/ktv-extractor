@@ -1,5 +1,6 @@
 from enum import Enum
 from typing import NewType
+import aiohttp
 
 class SearchType(Enum):
     SONG = 0
@@ -148,7 +149,10 @@ class Lyrics(dict):
 
 
 class BaseLyricsProvider:
-    async def search(self, keyword: str, search_type: SearchType, page: int | str = 1) -> list:
+    def __init__(self, client_session: aiohttp.ClientSession):
+        self.client_session = client_session
+
+    async def search(self, keyword: str, search_type: SearchType, info: dict | None = None, page: int | str = 1) -> list:
         raise NotImplementedError()
 
     async def get_lyrics(self, lyrics: Lyrics) -> None:
