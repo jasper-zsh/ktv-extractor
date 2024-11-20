@@ -16,7 +16,6 @@ logging.basicConfig(level=logging.INFO)
 
 model.init()
 
-
 async def main():
     async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(10)) as session:
         providers = [

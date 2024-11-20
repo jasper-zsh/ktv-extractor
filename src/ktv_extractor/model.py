@@ -1,5 +1,5 @@
 from typing import List, Optional
-from sqlalchemy import Text, Table, ForeignKey, Column
+from sqlalchemy import Text, Table, ForeignKey, Column, ForeignKeyConstraint
 from sqlalchemy import create_engine
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 from sqlalchemy.orm import sessionmaker
@@ -19,15 +19,15 @@ class BaseModel(DeclarativeBase):
 song_artist_table = Table(
     'song_artist',
     BaseModel.metadata,
-    Column('song_id', ForeignKey('song.id')),
-    Column('artist_id', ForeignKey('artist.id'))
+    Column('song_id', ForeignKey('song.id', ondelete='CASCADE')),
+    Column('artist_id', ForeignKey('artist.id', ondelete='CASCADE'))
 )
 
 song_tag_table = Table(
     'song_tag',
     BaseModel.metadata,
-    Column('song_id', ForeignKey('song.id')),
-    Column('tag_id', ForeignKey('tag.id'))
+    Column('song_id', ForeignKey('song.id', ondelete='CASCADE')),
+    Column('tag_id', ForeignKey('tag.id', ondelete='CASCADE'))
 )
 
 class Song(BaseModel):
@@ -40,6 +40,7 @@ class Song(BaseModel):
     lrc_path: Mapped[Optional[str]] = mapped_column(Text())
     lrc_fails: Mapped[int] = mapped_column()
     audio_only: Mapped[bool] = mapped_column()
+    corrupt: Mapped[bool] = mapped_column(nullable=False, default=False)
 
     artists: Mapped[List['Artist']] = relationship(secondary=song_artist_table)
     tags: Mapped[List['Tag']] = relationship(secondary=song_tag_table)
