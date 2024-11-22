@@ -1,4 +1,4 @@
-from pymkv import MKVFile
+from asyncmkv import MKVFile
 from . import model
 from .model import Song, Artist, Tag
 from sqlalchemy import select
@@ -7,8 +7,8 @@ from pathlib import Path
 from pypinyin import pinyin, Style
 import os
 
-def process_tracks(filepath: str):
-    mkv_file = MKVFile(filepath, mkvmerge_path='C:\\Program Files\\MKVToolNix\\mkvmerge.exe')
+async def process_tracks(filepath: str):
+    mkv_file = await MKVFile.new(filepath, mkvmerge_path='C:\\Program Files\\MKVToolNix\\mkvmerge.exe')
     video_track_ids = []
     
     for track in mkv_file.tracks:
@@ -27,7 +27,7 @@ def process_tracks(filepath: str):
     for id in video_track_ids:
         print('remove video track %d'%(id))
         mkv_file.remove_track(id)
-    mkv_file.mux(filepath+'.out')
+    await mkv_file.mux(filepath+'.out')
     os.unlink(filepath)
     os.rename(filepath+'.out', filepath)
 

@@ -38,8 +38,8 @@ class Song(BaseModel):
     pinyin_head: Mapped[str] = mapped_column(Text(collation='NOCASE'), index=True)
     path: Mapped[str] = mapped_column(Text(collation='NOCASE'), index=True)
     lrc_path: Mapped[Optional[str]] = mapped_column(Text())
-    lrc_fails: Mapped[int] = mapped_column()
-    audio_only: Mapped[bool] = mapped_column()
+    lrc_fails: Mapped[int] = mapped_column(nullable=False, default=0)
+    audio_only: Mapped[bool] = mapped_column(nullable=False, default=False)
     corrupt: Mapped[bool] = mapped_column(nullable=False, default=False)
 
     artists: Mapped[List['Artist']] = relationship(secondary=song_artist_table)

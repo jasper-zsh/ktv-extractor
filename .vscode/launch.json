@@ -20,7 +20,7 @@
             "request": "launch",
             "program": "${workspaceFolder}/src/index.py",
             "console": "integratedTerminal",
-            "cwd": "W:\\KTV歌库",
+            "cwd": "M:\\KTV",
             "args": [
                 ".\\mkv\\MKV歌库2"
             ]
@@ -31,7 +31,7 @@
             "request": "launch",
             "program": "${workspaceFolder}/src/batch_remove_video.py",
             "console": "integratedTerminal",
-            "cwd": "W:\\KTV歌库",
+            "cwd": "M:\\KTV",
             "args": [
                 "."
             ]
@@ -42,7 +42,7 @@
             "request": "launch",
             "program": "${workspaceFolder}/src/fetch_lyrics.py",
             "console": "integratedTerminal",
-            "cwd": "W:\\KTV歌库",
+            "cwd": "M:\\KTV",
             "args": [
                 "."
             ]

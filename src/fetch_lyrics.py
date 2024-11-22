@@ -19,8 +19,8 @@ model.init()
 async def main():
     async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(10)) as session:
         providers = [
-            QQMusicLyricsProvider(session),
             KugouLyricsProvider(session),
+            QQMusicLyricsProvider(session),
             NeteaseMusicLyricsProvider(session),
         ]
         songs: list[model.Song]
